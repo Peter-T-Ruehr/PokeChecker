@@ -1,0 +1,12 @@
+name: PokeChecker
+title: PokeChecker
+username: peter-t-ruehr
+account: peter-t-ruehr
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10846983
+bundleId: 8087765
+url: https://peter-t-ruehr.shinyapps.io/PokeChecker/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
