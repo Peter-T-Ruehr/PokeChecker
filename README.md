@@ -10,4 +10,4 @@ Everything is available in English and German. At start-up, the app defaults to 
 
 Currently, the app is reachable on [my Posit Shiny server](https://peter-t-ruehr.shinyapps.io/PokeChecker/).
 
-Issues can be reported at [PokePecker's Issues page](https://github.com/Peter-T-Ruehr/PokeChecker/issues), where comments and ideas are also welcome. Enjoy!
+Issues can be reported at [PokeChecker's Issues page](https://github.com/Peter-T-Ruehr/PokeChecker/issues), where comments and ideas are also welcome. Enjoy!
