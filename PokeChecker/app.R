@@ -41,9 +41,13 @@ ui <- fluidPage(
               multiple = FALSE),
   
   h3("Present in Pokédex"),
-  textOutput("mon_of_interest_selected_orig"),
-  textOutput("mon_of_interest_selected_final"),
-  DT::dataTableOutput('data_present')
+  # textOutput("mon_of_interest_selected_orig"),
+  # textOutput("mon_of_interest_selected_final"),
+  DT::dataTableOutput('data_present'),
+  p(),
+  HTML("For instructions on how to use this app with your own Pokédex, please visit <a href='https://github.com/Peter-T-Ruehr/PokeChecker'  target='_blank'>PokeCher's GitHub page.</a>"),
+  p(),
+  HTML("Enjoy and cheers, <a href='https://x.com/Peter_Th_R'  target='_blank'>Pete</a>")
 )
 
 # Define server logic
