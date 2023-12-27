@@ -21,12 +21,26 @@ ui <- fluidPage(
             width = NULL, 
             placeholder = NULL),
   
-  selectInput(inputId = "mon_of_interest_german", 
+  radioButtons(
+    inputId = "language",
+    label = "Language",
+    choices = c("name_english", "name_german"), # "English", "German"
+    selected = "name_german",
+    inline = FALSE,
+    width = NULL,
+    choiceNames = NULL,
+    choiceValues = NULL
+  ),
+  
+  
+  selectInput(inputId = "mon_of_interest", 
               label = "Pokemon", 
               choices = pokedex_df$name_german,
               multiple = FALSE),
   
   h3("Present in Pokédex"),
+  textOutput("mon_of_interest_selected_orig"),
+  textOutput("mon_of_interest_selected_final"),
   DT::dataTableOutput('data_present'),
   # p(),
   # h3("Needed in Pokédex"),
@@ -35,37 +49,59 @@ ui <- fluidPage(
 
 # Define server logic
 server <- function(input, output, session) {
+  # observe(language_column <- input$language)
+  
+  # Make drop-down choice of sel_2 dependent upon user input of sel_1
+  observeEvent(input$language, {
+    updateSelectInput(session,
+                      "mon_of_interest",
+                      choices = pokedex_df() %>% 
+                        pull(input$language)
+    )
+  })
+  
   pokedex_df <- reactive({
     read_sheet(input$pokedex_sheet_id, sheet = "pokedex")
   })
   
   output$data_present <- DT::renderDataTable({
-    req(input$mon_of_interest_german)
+    req(input$mon_of_interest,
+        input$language)
     
-    mon_of_interest_german <- gsub(" .+$", "", input$mon_of_interest_german)
+    output$mon_of_interest_selected_orig <- renderText({ 
+      paste("You have selected", input$mon_of_interest)
+    })
+    
+    mon_of_interest <- input$mon_of_interest
     
     # # testing
-    # mon_of_interest_german <- "Vivillon"
+    # mon_of_interest <- "Vivillon"
     
-    if(grepl('\\(', mon_of_interest_german)){
-      mon_of_interest_german <- gsub(" .+$", "", mon_of_interest_german)
+    if(grepl('\\(', mon_of_interest)){
+      mon_of_interest <- gsub(" .+$", "", mon_of_interest)
     }
     
-    mon_of_interest_english <- pokedex_df() %>% 
-      mutate(name_german = gsub(" .+$", "", name_german)) %>% 
-      filter(name_german == mon_of_interest_german) %>% 
-      slice(1) %>% 
-      pull(name_english) #%>% 
-    # gsub(" .+$", "", .)
+    # translate from german to english
+    if(input$language == "name_german"){
+      mon_of_interest <- pokedex_df() %>% 
+        mutate(name_german = gsub(" .+$", "", name_german)) %>% 
+        filter(name_german == mon_of_interest) %>% 
+        slice(1) %>% 
+        pull(name_english) 
+      
+      if(grepl('\\(', mon_of_interest)){
+        mon_of_interest <- gsub(" .+$", "", mon_of_interest)
+      }
+    }
     
-    if(grepl('\\(', mon_of_interest_english)){
-      mon_of_interest_english <- gsub(" .+$", "", mon_of_interest_english)
-    } 
+    output$mon_of_interest_selected_final <- renderText({ 
+      paste("You have selected", mon_of_interest)
+    })
     
     stages <- evolutions_df %>% 
-      filter(name1 == mon_of_interest_english |
-               name2 == mon_of_interest_english |
-               name3 == mon_of_interest_english) %>% 
+      filter(name1 == mon_of_interest |
+               name2 == mon_of_interest |
+               name3 == mon_of_interest) %>% 
       unlist()
     
     stages <- stages[!is.na(stages)]
