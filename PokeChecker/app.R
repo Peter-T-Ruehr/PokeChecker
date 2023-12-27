@@ -79,6 +79,14 @@ server <- function(input, output, session) {
     
     mon_of_interest <- input$mon_of_interest
     
+    if(grepl("(Male)", mon_of_interest)){
+      suffix <- "(Male)"
+    } else if(grepl("(Female)", mon_of_interest)){
+      suffix <- "(Female)"
+    } else {
+      suffix <- ""
+    }
+    
     # # testing
     # mon_of_interest <- "Vivillon"
     
@@ -99,6 +107,10 @@ server <- function(input, output, session) {
       }
     }
     
+    if(suffix != ""){
+      mon_of_interest <- paste(mon_of_interest, suffix)
+    }
+    
     output$mon_of_interest_selected_final <- renderText({ 
       paste("You have selected", mon_of_interest)
     })
@@ -113,9 +125,15 @@ server <- function(input, output, session) {
     
     
     # get entries of current stages
+    if(suffix == ""){
     curr_pokedex_present <- pokedex_df() %>% 
       mutate(English = gsub(" \\(.+", "", English)) %>% 
       filter(English %in% stages)
+    } else{
+      curr_pokedex_present <- pokedex_df() %>% 
+        # mutate(English = gsub(" \\(.+", "", English)) %>% 
+        filter(English %in% stages)
+    }
     
     # fill alolan, hisuian, galaran , paldean shadow and purified
     special_forms <- c("Alola", "Hisui", "Galar", "Paldea")
@@ -180,6 +198,8 @@ server <- function(input, output, session) {
     
     for(i in 1:nrow(curr_pokedex_present)){
       curr_pokedex_present$image[i] <- gsub("mime jr..avif", "mime-jr.avif", curr_pokedex_present$image[i])
+      curr_pokedex_present$image[i] <- gsub("nidoran \\(male\\)", "nidoran-m", curr_pokedex_present$image[i])
+      curr_pokedex_present$image[i] <- gsub("nidoran \\(female\\)", "nidoran-f", curr_pokedex_present$image[i])
     }
     
     # i=1
@@ -220,7 +240,8 @@ server <- function(input, output, session) {
              var = gsub("name_english", "English", var))
     
     # separate stages if multple forms exist
-    if(grepl('\\(', curr_pokedex_present[1,2])){
+    if(grepl('\\(', curr_pokedex_present[1,2]) &
+       suffix == ""){
       final_df <- tibble()
       for(i in 1:length(stages)){
         columns_with_curr_stage <- which(grepl(stages[i], curr_pokedex_present[2,]))
