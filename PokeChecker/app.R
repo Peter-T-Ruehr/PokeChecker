@@ -41,8 +41,8 @@ ui <- fluidPage(
               multiple = FALSE),
   
   h3("Present in Pokédex"),
-  textOutput("mon_of_interest_selected_orig"),
-  textOutput("mon_of_interest_selected_final"),
+  # textOutput("mon_of_interest_selected_orig"),
+  # textOutput("mon_of_interest_selected_final"),
   DT::dataTableOutput('data_present'),
   p(),
   HTML("For instructions on how to use this app with your own Pokédex, please visit <a href='https://github.com/Peter-T-Ruehr/PokeChecker'  target='_blank'>PokeChecker's GitHub page.</a>"),
@@ -74,7 +74,7 @@ server <- function(input, output, session) {
         input$language)
     
     output$mon_of_interest_selected_orig <- renderText({ 
-      paste("You have selected", input$mon_of_interest)
+      paste("Original selection:", input$mon_of_interest)
     })
     
     mon_of_interest <- input$mon_of_interest
@@ -112,7 +112,7 @@ server <- function(input, output, session) {
     }
     
     output$mon_of_interest_selected_final <- renderText({ 
-      paste("You have selected", mon_of_interest)
+      paste("Converted selection:", mon_of_interest)
     })
     
     stages <- evolutions_df %>% 
@@ -201,6 +201,15 @@ server <- function(input, output, session) {
       curr_pokedex_present$image[i] <- gsub("nidoran \\(male\\)", "nidoran-m", curr_pokedex_present$image[i])
       curr_pokedex_present$image[i] <- gsub("nidoran \\(female\\)", "nidoran-f", curr_pokedex_present$image[i])
       curr_pokedex_present$image[i] <- gsub("flabébé", "flabebe", curr_pokedex_present$image[i], fixed=TRUE)
+      if(curr_pokedex_present$German[i] == "Burmy (Plant)") curr_pokedex_present$image[i] <- gsub("burmy", "burmy-plant", curr_pokedex_present$image[i])
+      if(curr_pokedex_present$German[i] == "Burmy (Sandy)") curr_pokedex_present$image[i] <- gsub("burmy", "burmy-sandy", curr_pokedex_present$image[i])
+      if(curr_pokedex_present$German[i] == "Burmy (Trash)") curr_pokedex_present$image[i] <- gsub("burmy", "burmy-trash", curr_pokedex_present$image[i])
+      if(curr_pokedex_present$German[i] == "Burmadame (Plant)") curr_pokedex_present$image[i] <- gsub("wormadam", "wormadam-plant", curr_pokedex_present$image[i])
+      if(curr_pokedex_present$German[i] == "Burmadame (Sandy)") curr_pokedex_present$image[i] <- gsub("wormadam", "wormadam-sandy", curr_pokedex_present$image[i])
+      if(curr_pokedex_present$German[i] == "Burmadame (Trash)") curr_pokedex_present$image[i] <- gsub("wormadam", "wormadam-trash", curr_pokedex_present$image[i])
+      if(curr_pokedex_present$German[i] == "Moterpel (Plant)") curr_pokedex_present$image[i] <- gsub("mothim", "mothim-plant", curr_pokedex_present$image[i])
+      if(curr_pokedex_present$German[i] == "Moterpel (Sandy)") curr_pokedex_present$image[i] <- gsub("mothim", "mothim-sandy", curr_pokedex_present$image[i])
+      if(curr_pokedex_present$German[i] == "Moterpel (Trash)") curr_pokedex_present$image[i] <- gsub("mothim", "mothim-trash", curr_pokedex_present$image[i])
     }
     
     # i=1
