@@ -200,6 +200,7 @@ server <- function(input, output, session) {
       curr_pokedex_present$image[i] <- gsub("mime jr..avif", "mime-jr.avif", curr_pokedex_present$image[i])
       curr_pokedex_present$image[i] <- gsub("nidoran \\(male\\)", "nidoran-m", curr_pokedex_present$image[i])
       curr_pokedex_present$image[i] <- gsub("nidoran \\(female\\)", "nidoran-f", curr_pokedex_present$image[i])
+      curr_pokedex_present$image[i] <- gsub("flabébé", "flabebe", curr_pokedex_present$image[i], fixed=TRUE)
     }
     
     # i=1
