@@ -41,8 +41,8 @@ ui <- fluidPage(
               multiple = FALSE),
   
   h3("Present in Pokédex"),
-  # textOutput("mon_of_interest_selected_orig"),
-  # textOutput("mon_of_interest_selected_final"),
+  textOutput("mon_of_interest_selected_orig"),
+  textOutput("mon_of_interest_selected_final"),
   DT::dataTableOutput('data_present'),
   p(),
   HTML("For instructions on how to use this app with your own Pokédex, please visit <a href='https://github.com/Peter-T-Ruehr/PokeChecker'  target='_blank'>PokeChecker's GitHub page.</a>"),
@@ -121,7 +121,7 @@ server <- function(input, output, session) {
                name3 == mon_of_interest) %>% 
       unlist()
     
-    stages <- stages[!is.na(stages)]
+    stages <- unique(stages[!is.na(stages)])
     
     
     # get entries of current stages
