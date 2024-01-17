@@ -150,6 +150,11 @@ server <- function(input, output, session) {
       }
     }
     
+    # replace "-" with / for genders that don't exist
+    curr_pokedex_present <- curr_pokedex_present %>% 
+      mutate(male_in_dex = gsub("-", "/", male_in_dex),
+             female_in_dex = gsub("-", "/", female_in_dex))
+    
     # add images to present entries
     curr_pokedex_present <- curr_pokedex_present %>% 
       replace(is.na(.), "-") %>% 
