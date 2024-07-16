@@ -50,19 +50,22 @@ for(i in 1:nrow(pokedex_df_raw)){
   curr_dex <- pokedex_df_raw$dex[i]
   curr_name_english <- pokedex_df_raw$name_english[i]
   # # get catch status of current pokemon
-  # dex_caught <- pokedex_df_raw %>% 
+  # dex_caught <- pokedex_df_raw %>%
   #   filter(dex == curr_dex)
   
   # filter pokedex_df_raw to only contain data if the curr dex number
   curr_pokedex_df_raw <- pokedex_df_raw %>%
     filter(dex == curr_dex)
   
-  if(length((unique (grep(paste(special_forms,collapse="|"), 
-                   curr_name_english, value=TRUE)))) > 0){
-    curr_name_german <- pokedex_df_raw$name_german[i]
-    pokedex_df_raw[i,] <- curr_pokedex_df_raw %>% slice(1)
-    pokedex_df_raw$name_german[i] <- curr_name_german
-    pokedex_df_raw$name_english[i] <- curr_name_english
+  if(length((unique (grep(paste(special_forms,collapse="|"),
+                          curr_name_english, value=TRUE)))) > 0){
+    if(any(grepl("^x$", pokedex_df_raw[i,])) |
+       any(grepl("^b$", pokedex_df_raw[i,]))){
+      curr_name_german <- pokedex_df_raw$name_german[i]
+      pokedex_df_raw[i,] <- curr_pokedex_df_raw %>% slice(1)
+      pokedex_df_raw$name_german[i] <- curr_name_german
+      pokedex_df_raw$name_english[i] <- curr_name_english
+    }
   }
 }
 
@@ -133,7 +136,7 @@ server <- function(input, output, session) {
   #   pokedex_df_raw <- read_pokedex_data()
   # })
   
- 
+  
   # 
   #   pokedex_df_raw <- pokedex_df()
   
