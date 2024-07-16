@@ -8,7 +8,7 @@ library(tidyr)
 library(dplyr)
 
 # translations
-# translations_df_wide <- read_sheet(pokedex_sheet_id,sheet = "translations")
+# translations_df_wide <- read_sheet(pokedex_df_raw,sheet = "translations")
 # translations_df_wide <- read.csv(file = "PokeChecker/data/translations_df_wide.csv")
 translations_df_wide <- read.csv(file = "data/translations_df_wide.csv")
 # get rid of #
@@ -16,7 +16,7 @@ translations_df_wide <- translations_df_wide %>%
   mutate(dex = gsub("#", "", dex))
 
 # evolution chains
-# evolutions_df <- read_sheet(pokedex_sheet_id,sheet = "evolution_chains") 
+# evolutions_df <- read_sheet(pokedex_df_raw,sheet = "evolution_chains") 
 # evolutions_df <- read.csv(file = "PokeChecker/data/evolution_chains.csv")
 evolutions_df <- read.csv(file = "data/evolution_chains.csv")
 # get rid of #
@@ -24,10 +24,12 @@ evolutions_df <- evolutions_df %>%
   mutate(across(everything(), ~ gsub("#", "", .)))
 
 # load google sheets
-pokedex_sheet_id <- "https://docs.google.com/spreadsheets/d/1WZWY-zCCki9jD26-v7QQ1CCX85NmiYclPLukeIPHJV4/"
+pokedex_df_raw <- "https://docs.google.com/spreadsheets/d/1WZWY-zCCki9jD26-v7QQ1CCX85NmiYclPLukeIPHJV4/"
 
 # pokedex
-pokedex_df_raw <- read_sheet(pokedex_sheet_id,sheet = "pokedex") 
+pokedex_df_raw <- read_sheet(pokedex_df_raw,sheet = "pokedex")
+# pokedex_df_raw <- read.csv(file = "data/pokedex.csv", colClasses = "character")
+# pokedex_df_raw <- read.csv(file = "PokeChecker/data/pokedex.csv", colClasses = "character")
 
 
 
@@ -40,14 +42,41 @@ translations_df <- as_tibble(melt(setDT(translations_df_wide),
                                   value.name = "name"))
 
 
+special_forms <- c("Galarian", "Alolan", "Hisuian", "Paldean")
+# get 3 stars, erlöst and crypto checks into table of special forms
+i=37
+j=3
+for(i in 1:nrow(pokedex_df_raw)){
+  curr_dex <- pokedex_df_raw$dex[i]
+  curr_name_english <- pokedex_df_raw$name_english[i]
+  # # get catch status of current pokemon
+  # dex_caught <- pokedex_df_raw %>% 
+  #   filter(dex == curr_dex)
+  
+  # filter pokedex_df_raw to only contain data if the curr dex number
+  curr_pokedex_df_raw <- pokedex_df_raw %>%
+    filter(dex == curr_dex)
+  
+  if(length((unique (grep(paste(special_forms,collapse="|"), 
+                   curr_name_english, value=TRUE)))) > 0){
+    curr_name_german <- pokedex_df_raw$name_german[i]
+    pokedex_df_raw[i,] <- curr_pokedex_df_raw %>% slice(1)
+    pokedex_df_raw$name_german[i] <- curr_name_german
+    pokedex_df_raw$name_english[i] <- curr_name_english
+  }
+}
+
+
 # Define UI for application 
 ui <- fluidPage(
-  textInput(inputId = "pokedex_sheet_id", 
+  textInput(inputId = "pokedex_df_raw", 
             label = "Spreadsheet URL", 
             value = "https://docs.google.com/spreadsheets/d/1WZWY-zCCki9jD26-v7QQ1CCX85NmiYclPLukeIPHJV4/", 
             width = "80%", 
             placeholder = NULL),
-  
+  # p(),
+  # actionButton("reload_dex", "Reload Pokedex Data"),
+  # p(),
   radioButtons(
     inputId = "language",
     label = "Language",
@@ -75,7 +104,9 @@ ui <- fluidPage(
   p(),
   HTML("Enjoy and cheers, <a href='https://x.com/Peter_Th_R'  target='_blank'>Pete</a>"),
   p(),
-  HTML("Unless otherwise stated, image content is taken from <a href='www.serebii.net/'  target='_blank'>www.serebii.net/</a>, licensed under the  <a href='https://creativecommons.org/licenses/by-nc-sa/2.5/'  target='_blank'>Creative Commons Attribution-NonCommercial-ShareAlike</a> license.")
+  p(),
+  HTML("Pokémon and All Respective Names are Trademark & © of Nintendo 1996-2024"),
+  HTML("Image Content is Mirrored from <a href='www.serebii.net/'  target='_blank'>www.serebii.net/</a>; © Copyright of Serebii.net 1999-2024.") # , licensed under the  <a href='https://creativecommons.org/licenses/by-nc-sa/2.5/'  target='_blank'>Creative Commons Attribution-NonCommercial-ShareAlike</a> license.
   
   
 )
@@ -94,9 +125,15 @@ server <- function(input, output, session) {
   })
   
   # # read pokedex sheet
-  #   pokedex_df <- reactive({
-  #   read_sheet(input$pokedex_sheet_id, sheet = "pokedex")
+  # read_pokedex_data <- reactive({
+  #   read_sheet(input$pokedex_df_raw, sheet = "pokedex")
   # })
+  # 
+  # observeEvent(input$reload_dex, {
+  #   pokedex_df_raw <- read_pokedex_data()
+  # })
+  
+ 
   # 
   #   pokedex_df_raw <- pokedex_df()
   
@@ -109,18 +146,26 @@ server <- function(input, output, session) {
       paste("Original selection:", input$mon_of_interest)
     })
     
-    mon_of_interest <- gsub(" \\(Mega)", "", input$mon_of_interest) # str_split(
-    mon_of_interest <- gsub(" \\(Mega X\\)", "", mon_of_interest)
-    mon_of_interest <- gsub(" \\(Mega Y\\)", "", mon_of_interest)
+    mon_of_interest <- gsub(" \\(.+\\)", "", input$mon_of_interest)
+    # mon_of_interest <- gsub(" \\(Mega\\)", "", input$mon_of_interest) # str_split(
+    # mon_of_interest <- gsub(" \\(Mega X\\)", "", mon_of_interest)
+    # mon_of_interest <- gsub(" \\(Mega Y\\)", "", mon_of_interest)
+    # mon_of_interest <- gsub(" \\(Small\\)", "", mon_of_interest)
+    # mon_of_interest <- gsub(" \\(Primal\\)", "", mon_of_interest)
+    # mon_of_interest <- gsub(" \\(Average\\)", "", mon_of_interest)
+    # mon_of_interest <- gsub(" \\(Large\\)", "", mon_of_interest)
+    # mon_of_interest <- gsub(" \\(Super Size\\)", "", mon_of_interest)
+    # mon_of_interest <- gsub(" \\(Confined\\)", "", mon_of_interest)
+    # mon_of_interest <- gsub(" \\(Unbound\\)", "", mon_of_interest)
     
     output$mon_of_interest_selected_final <- renderText({ 
       paste("Converted selection:", mon_of_interest)
     })
     
-    # testing
-    # mon_of_interest <- "Glurak"
-    mon_of_interest <- "Sandan"
-
+    # # testing
+    # # mon_of_interest <- "Glurak"
+    # mon_of_interest <- "Sandan"
+    
     # if(grepl("(Male)", mon_of_interest)){
     #   suffix <- "(Male)"
     # } else if(grepl("(Female)", mon_of_interest)){
@@ -188,6 +233,8 @@ server <- function(input, output, session) {
     #   }
     # }
     
+    
+    
     # get images from https://serebii.net
     i=1
     j=5
@@ -195,25 +242,55 @@ server <- function(input, output, session) {
       curr_dex <- stages_caught$dex[i]
       curr_name_english <- stages_caught$name_english[i]
       for(j in 1:ncol(stages_caught)){
-        stages_caught[i,j] <- gsub("^b$", "x", stages_caught[i,j])
+        # stages_caught[i,j] <- gsub("^b$", "x", stages_caught[i,j])
         if (grepl("Galarian", curr_name_english) == TRUE){
           stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
-                                                   substring(curr_dex, first = 2), "-g.png \"",  "height=\"20\"></img>"), 
+                                                   substring(curr_dex, first = 2), "-g.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         } else if (grepl("Alolan", curr_name_english) == TRUE){
           stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
-                                                   substring(curr_dex, first = 2), "-a.png \"",  "height=\"20\"></img>"), 
+                                                   substring(curr_dex, first = 2), "-a.png",  " height=\"60\"></img>"), 
+                                     stages_caught[i,j])
+        } else if (grepl("Mega X", curr_name_english) == TRUE){
+          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+                                                   substring(curr_dex, first = 2), "-mx.png",  " height=\"60\"></img>"), 
+                                     stages_caught[i,j])
+        } else if (grepl("Mega Y", curr_name_english) == TRUE){
+          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+                                                   substring(curr_dex, first = 2), "-my.png",  " height=\"60\"></img>"), 
+                                     stages_caught[i,j])
+        } else if (grepl("Mega", curr_name_english) == TRUE){
+          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+                                                   substring(curr_dex, first = 2), "-m.png",  " height=\"60\"></img>"), 
+                                     stages_caught[i,j])
+        }  else if (grepl("Primal", curr_name_english) == TRUE){
+          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+                                                   substring(curr_dex, first = 2), "-m.png",  " height=\"60\"></img>"), 
+                                     stages_caught[i,j])
+        } else if (grepl("Pom-Pom", curr_name_english) == TRUE){
+          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+                                                   substring(curr_dex, first = 2), "-p.png",  " height=\"60\"></img>"), 
+                                     stages_caught[i,j])
+        } else if (grepl("P'au", curr_name_english) == TRUE){
+          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+                                                   substring(curr_dex, first = 2), "-pau.png",  " height=\"60\"></img>"), 
+                                     stages_caught[i,j])
+        } else if (grepl("Sensu", curr_name_english) == TRUE){
+          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+                                                   substring(curr_dex, first = 2), "-s.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         } else {
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
-                                                   substring(curr_dex, first = 2), ".png \"",  "height=\"20\"></img>"), 
+          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/',
+                                                   substring(curr_dex, first = 2), ".png",  " height=\"60\"></img>"),
                                      stages_caught[i,j])
         }
       }
     }
     
     
-    
+    # stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+    #                                          substring(curr_dex, first = 2), ".png \"",  "height=\"20\"></img>"), 
+    #                            stages_caught[i,j])
     
     # https://www.serebii.net/pokemon/art/144.png
     DT::datatable(stages_caught,
