@@ -73,7 +73,7 @@ load_sheets <- function(){
   #   }
   # }
   
-  i=36
+  i=1097
   j=3
   for(i in 1:nrow(pokedex_df_raw)){
     curr_dex <- pokedex_df_raw$dex[i]
@@ -95,78 +95,26 @@ load_sheets <- function(){
       # go through all special form rows
       k=2
       for(k in 2:nrow(dex_caught)){
-        # check if the current form as any checked mark
-        if(any(grepl("^1$", dex_caught[k,]))){
-          curr_name_english_spec <- dex_caught$name_english[k]
-          dex_caught$male_in_dex[k] <- max(check_m, as.numeric(dex_caught$male_in_dex[k]), na.rm = TRUE)
-          dex_caught$female_in_dex[k] <- max(check_m, as.numeric(dex_caught$female_in_dex[k]), na.rm = TRUE)
-          dex_caught$stars3_in_dex[k] <- max(check_m, as.numeric(dex_caught$stars3_in_dex[k]), na.rm = TRUE)
-          dex_caught$shadow_in_dex[k] <- max(check_m, as.numeric(dex_caught$shadow_in_dex[k]), na.rm = TRUE)
-          dex_caught$purified_in_dex[k] <- max(check_m, as.numeric(dex_caught$purified_in_dex[k]), na.rm = TRUE)
-          
+        
+        if(grepl("Mega", dex_caught$name_english[k]) == FALSE){
+          # check if the current form as any checked mark
+          if(any(grepl("^1$", dex_caught[k,]))){
+            curr_name_english_spec <- dex_caught$name_english[k]
+            dex_caught$male_in_dex[k] <- max(check_m, as.numeric(dex_caught$male_in_dex[k]), na.rm = TRUE)
+            dex_caught$female_in_dex[k] <- max(check_m, as.numeric(dex_caught$female_in_dex[k]), na.rm = TRUE)
+            dex_caught$stars3_in_dex[k] <- max(check_m, as.numeric(dex_caught$stars3_in_dex[k]), na.rm = TRUE)
+            dex_caught$shadow_in_dex[k] <- max(check_m, as.numeric(dex_caught$shadow_in_dex[k]), na.rm = TRUE)
+            dex_caught$purified_in_dex[k] <- max(check_m, as.numeric(dex_caught$purified_in_dex[k]), na.rm = TRUE)
+            
+            # get dex_caught data into pokedex_df_raw
+            pokedex_df_raw[pokedex_df_raw$name_english ==  curr_name_english_spec,] <<- dex_caught[k,]
+          }
         }
         
-        # get dex_caught data into pokedex_df_raw
-        pokedex_df_raw[pokedex_df_raw$name_english ==  curr_name_english_spec,] <<- dex_caught[k,]
+        
       }
     }
-    
-    
-    # # get dex_caught data into pokedex_df_raw
-    # joined_tibble <- left_join(pokedex_df_raw, dex_caught, by = c("name_english"), suffix = c("", ".new"))
-    # 
-    # # Replace the values conditionally
-    # pokedex_df_raw_fin <- joined_tibble %>%
-    #   mutate(value = ifelse(!is.na(value.new), value.new, value)) %>%
-    #   select(-value.new)
-    
-    # if(length((unique (grep(paste(special_forms,collapse="|"),
-    #                         curr_name_english, value=TRUE)))) > 0){
-    #   if(any(grepl("^1$", pokedex_df_raw[i,])) |
-    #      any(grepl("^b$", pokedex_df_raw[i,]))){
-    #     curr_name_german <- pokedex_df_raw$name_german[i]
-    #     pokedex_df_raw[i,] <- curr_pokedex_df_raw %>% slice(1)
-    #     pokedex_df_raw$name_german[i] <- curr_name_german
-    #     pokedex_df_raw$name_english[i] <- curr_name_english
-    #   }
-    # } else {
-    #   # filter pokedex_df_raw to only contain data of the curr dex number
-    #   curr_pokedex_df_raw <- pokedex_df_raw %>%
-    #     filter(dex == curr_dex)
-    # }
   }
-  
-  # i=36
-  # j=3
-  # k=2
-  # rows_to_mirror <- c("male_in_dex","female_in_dex","stars3_in_dex","shadow_in_dex","purified_in_dex")
-  # for(i in 1:nrow(pokedex_df_raw)){
-  #   curr_dex <- pokedex_df_raw$dex[i]
-  #   curr_name_english <- pokedex_df_raw$name_english[i]
-  #   k=1
-  #   check_m <- as.numeric(gsub("x", 1, pokedex_df_raw$male_in_dex[i]))
-  #   check_f <- as.numeric(gsub("x", 1, pokedex_df_raw$female_in_dex[i]))
-  #   check_3 <- as.numeric(gsub("x", 1, pokedex_df_raw$stars3_in_dex[i]))
-  #   check_s <- as.numeric(gsub("x", 1, pokedex_df_raw$shadow_in_dex[i]))
-  #   check_p <- as.numeric(gsub("x", 1, pokedex_df_raw$purified_in_dex[i]))
-  #   for(k in 1:length(special_forms)){
-  #     curr_special_form <- special_forms[k]
-  #     special_row <- which(paste0(curr_name_english, " (", curr_special_form, ")") == pokedex_df_raw$name_english)
-  #     if(length(special_row == 1)){
-  #       # here! check if any of special row is "x"
-  #       check_m <- max(check_m, as.numeric(gsub("x", 1, pokedex_df_raw$male_in_dex[special_row])), na.rm = TRUE)
-  #       pokedex_df_raw$male_in_dex[special_row] <- gsub(1, "x", check_m)
-  #       check_f <- max(check_f, as.numeric(gsub("x", 1, pokedex_df_raw$female_in_dex[special_row])), na.rm = TRUE)
-  #       pokedex_df_raw$female_in_dex[special_row] <- gsub(1, "x", check_f)
-  #       check_3 <- max(check_3, as.numeric(gsub("x", 1, pokedex_df_raw$stars3_in_dex[special_row])), na.rm = TRUE)
-  #       pokedex_df_raw$stars3_in_dex[special_row] <- gsub(1, "x", check_3)
-  #       check_s <- max(check_s, as.numeric(gsub("x", 1, pokedex_df_raw$shadow_in_dex[special_row])), na.rm = TRUE)
-  #       pokedex_df_raw$shadow_in_dex[special_row] <- gsub(1, "x", check_s)
-  #       check_p <- max(check_p, as.numeric(gsub("x", 1, pokedex_df_raw$purified_in_dex[special_row])), na.rm = TRUE)
-  #       pokedex_df_raw$purified_in_dex[special_row] <- gsub(1, "x", check_p)
-  #     }
-  #   }
-  # }
 }
 
 
@@ -287,8 +235,9 @@ server <- function(input, output, session) {
     })
     
     # # testing
-    # # mon_of_interest <- "Glurak"
+    # mon_of_interest <- "Glurak"
     # mon_of_interest <- "Sandan"
+    # mon_of_interest <- "Obstagoon"
     
     # if(grepl("(Male)", mon_of_interest)){
     #   suffix <- "(Male)"
