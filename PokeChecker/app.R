@@ -24,14 +24,150 @@ evolutions_df <- evolutions_df %>%
   mutate(across(everything(), ~ gsub("#", "", .)))
 
 # load google sheets
-pokedex_df_raw <- "https://docs.google.com/spreadsheets/d/1WZWY-zCCki9jD26-v7QQ1CCX85NmiYclPLukeIPHJV4/"
-
-# pokedex
-pokedex_df_raw <- read_sheet(pokedex_df_raw,sheet = "pokedex")
-# pokedex_df_raw <- read.csv(file = "data/pokedex.csv", colClasses = "character")
-# pokedex_df_raw <- read.csv(file = "PokeChecker/data/pokedex.csv", colClasses = "character")
-
-
+load_sheets <- function(){
+  pokedex_df_raw <<- "https://docs.google.com/spreadsheets/d/1WZWY-zCCki9jD26-v7QQ1CCX85NmiYclPLukeIPHJV4/"
+  
+  # pokedex
+  pokedex_df_raw <<- read_sheet(pokedex_df_raw,sheet = "pokedex")
+  # pokedex_df_raw <- read.csv(file = "data/pokedex.csv", colClasses = "character")
+  # pokedex_df_raw <- read.csv(file = "PokeChecker/data/pokedex.csv", colClasses = "character")
+  
+  
+  # get column names to mirror and their numbers
+  cols_to_mirror <- c("male_in_dex","female_in_dex","stars3_in_dex","shadow_in_dex","purified_in_dex")
+  cols_to_mirror_nos <- which(colnames(dex_caught) %in% cols_to_mirror)
+  
+  # replace all b with x
+  pokedex_df_raw <<- pokedex_df_raw %>%
+    mutate(across(all_of(cols_to_mirror), ~ str_replace_all(., "b", "x")))
+  
+  # replace all x with 1
+  pokedex_df_raw <<- pokedex_df_raw %>%
+    mutate(across(all_of(cols_to_mirror), ~ str_replace_all(., "x", "1")))
+  
+  # get 3 stars, erlöst and crypto checks into table of special forms
+  # i=37
+  # j=3
+  # for(i in 1:nrow(pokedex_df_raw)){
+  #   curr_dex <- pokedex_df_raw$dex[i]
+  #   curr_name_english <- pokedex_df_raw$name_english[i]
+  #   # # get catch status of current pokemon
+  #   # dex_caught <- pokedex_df_raw %>%
+  #   #   filter(dex == curr_dex)
+  # 
+  #   
+  # 
+  #   if(length((unique (grep(paste(special_forms,collapse="|"),
+  #                           curr_name_english, value=TRUE)))) > 0){
+  #     if(any(grepl("^1$", pokedex_df_raw[i,])) |
+  #        any(grepl("^b$", pokedex_df_raw[i,]))){
+  #       curr_name_german <- pokedex_df_raw$name_german[i]
+  #       pokedex_df_raw[i,] <- curr_pokedex_df_raw %>% slice(1)
+  #       pokedex_df_raw$name_german[i] <- curr_name_german
+  #       pokedex_df_raw$name_english[i] <- curr_name_english
+  #     }
+  #   } else {
+  #     # filter pokedex_df_raw to only contain data of the curr dex number
+  #     curr_pokedex_df_raw <- pokedex_df_raw %>%
+  #       filter(dex == curr_dex)
+  #   }
+  # }
+  
+  i=36
+  j=3
+  for(i in 1:nrow(pokedex_df_raw)){
+    curr_dex <- pokedex_df_raw$dex[i]
+    curr_name_english <- pokedex_df_raw$name_english[i]
+    
+    # get catch status of current pokemon
+    dex_caught <- pokedex_df_raw %>%
+      filter(dex == curr_dex)
+    
+    if(nrow(dex_caught) > 1){
+      
+      # get check values from kanto forms
+      check_m <- as.numeric(gsub("x", 1, dex_caught$male_in_dex[1]))
+      check_f <- as.numeric(gsub("x", 1, dex_caught$female_in_dex[1]))
+      check_3 <- as.numeric(gsub("x", 1, dex_caught$stars3_in_dex[1]))
+      check_s <- as.numeric(gsub("x", 1, dex_caught$shadow_in_dex[1]))
+      check_p <- as.numeric(gsub("x", 1, dex_caught$purified_in_dex[1]))
+      
+      # go through all special form rows
+      k=2
+      for(k in 2:nrow(dex_caught)){
+        # check if the current form as any checked mark
+        if(any(grepl("^1$", dex_caught[k,]))){
+          curr_name_english_spec <- dex_caught$name_english[k]
+          dex_caught$male_in_dex[k] <- max(check_m, as.numeric(dex_caught$male_in_dex[k]), na.rm = TRUE)
+          dex_caught$female_in_dex[k] <- max(check_m, as.numeric(dex_caught$female_in_dex[k]), na.rm = TRUE)
+          dex_caught$stars3_in_dex[k] <- max(check_m, as.numeric(dex_caught$stars3_in_dex[k]), na.rm = TRUE)
+          dex_caught$shadow_in_dex[k] <- max(check_m, as.numeric(dex_caught$shadow_in_dex[k]), na.rm = TRUE)
+          dex_caught$purified_in_dex[k] <- max(check_m, as.numeric(dex_caught$purified_in_dex[k]), na.rm = TRUE)
+          
+        }
+        
+        # get dex_caught data into pokedex_df_raw
+        pokedex_df_raw[pokedex_df_raw$name_english ==  curr_name_english_spec,] <<- dex_caught[k,]
+      }
+    }
+    
+    
+    # # get dex_caught data into pokedex_df_raw
+    # joined_tibble <- left_join(pokedex_df_raw, dex_caught, by = c("name_english"), suffix = c("", ".new"))
+    # 
+    # # Replace the values conditionally
+    # pokedex_df_raw_fin <- joined_tibble %>%
+    #   mutate(value = ifelse(!is.na(value.new), value.new, value)) %>%
+    #   select(-value.new)
+    
+    # if(length((unique (grep(paste(special_forms,collapse="|"),
+    #                         curr_name_english, value=TRUE)))) > 0){
+    #   if(any(grepl("^1$", pokedex_df_raw[i,])) |
+    #      any(grepl("^b$", pokedex_df_raw[i,]))){
+    #     curr_name_german <- pokedex_df_raw$name_german[i]
+    #     pokedex_df_raw[i,] <- curr_pokedex_df_raw %>% slice(1)
+    #     pokedex_df_raw$name_german[i] <- curr_name_german
+    #     pokedex_df_raw$name_english[i] <- curr_name_english
+    #   }
+    # } else {
+    #   # filter pokedex_df_raw to only contain data of the curr dex number
+    #   curr_pokedex_df_raw <- pokedex_df_raw %>%
+    #     filter(dex == curr_dex)
+    # }
+  }
+  
+  # i=36
+  # j=3
+  # k=2
+  # rows_to_mirror <- c("male_in_dex","female_in_dex","stars3_in_dex","shadow_in_dex","purified_in_dex")
+  # for(i in 1:nrow(pokedex_df_raw)){
+  #   curr_dex <- pokedex_df_raw$dex[i]
+  #   curr_name_english <- pokedex_df_raw$name_english[i]
+  #   k=1
+  #   check_m <- as.numeric(gsub("x", 1, pokedex_df_raw$male_in_dex[i]))
+  #   check_f <- as.numeric(gsub("x", 1, pokedex_df_raw$female_in_dex[i]))
+  #   check_3 <- as.numeric(gsub("x", 1, pokedex_df_raw$stars3_in_dex[i]))
+  #   check_s <- as.numeric(gsub("x", 1, pokedex_df_raw$shadow_in_dex[i]))
+  #   check_p <- as.numeric(gsub("x", 1, pokedex_df_raw$purified_in_dex[i]))
+  #   for(k in 1:length(special_forms)){
+  #     curr_special_form <- special_forms[k]
+  #     special_row <- which(paste0(curr_name_english, " (", curr_special_form, ")") == pokedex_df_raw$name_english)
+  #     if(length(special_row == 1)){
+  #       # here! check if any of special row is "x"
+  #       check_m <- max(check_m, as.numeric(gsub("x", 1, pokedex_df_raw$male_in_dex[special_row])), na.rm = TRUE)
+  #       pokedex_df_raw$male_in_dex[special_row] <- gsub(1, "x", check_m)
+  #       check_f <- max(check_f, as.numeric(gsub("x", 1, pokedex_df_raw$female_in_dex[special_row])), na.rm = TRUE)
+  #       pokedex_df_raw$female_in_dex[special_row] <- gsub(1, "x", check_f)
+  #       check_3 <- max(check_3, as.numeric(gsub("x", 1, pokedex_df_raw$stars3_in_dex[special_row])), na.rm = TRUE)
+  #       pokedex_df_raw$stars3_in_dex[special_row] <- gsub(1, "x", check_3)
+  #       check_s <- max(check_s, as.numeric(gsub("x", 1, pokedex_df_raw$shadow_in_dex[special_row])), na.rm = TRUE)
+  #       pokedex_df_raw$shadow_in_dex[special_row] <- gsub(1, "x", check_s)
+  #       check_p <- max(check_p, as.numeric(gsub("x", 1, pokedex_df_raw$purified_in_dex[special_row])), na.rm = TRUE)
+  #       pokedex_df_raw$purified_in_dex[special_row] <- gsub(1, "x", check_p)
+  #     }
+  #   }
+  # }
+}
 
 
 colnames(translations_df_wide) <- gsub("name_", "", colnames(translations_df_wide))
@@ -43,32 +179,10 @@ translations_df <- as_tibble(melt(setDT(translations_df_wide),
 
 
 special_forms <- c("Galarian", "Alolan", "Hisuian", "Paldean")
-# get 3 stars, erlöst and crypto checks into table of special forms
-i=37
-j=3
-for(i in 1:nrow(pokedex_df_raw)){
-  curr_dex <- pokedex_df_raw$dex[i]
-  curr_name_english <- pokedex_df_raw$name_english[i]
-  # # get catch status of current pokemon
-  # dex_caught <- pokedex_df_raw %>%
-  #   filter(dex == curr_dex)
-  
-  # filter pokedex_df_raw to only contain data if the curr dex number
-  curr_pokedex_df_raw <- pokedex_df_raw %>%
-    filter(dex == curr_dex)
-  
-  if(length((unique (grep(paste(special_forms,collapse="|"),
-                          curr_name_english, value=TRUE)))) > 0){
-    if(any(grepl("^x$", pokedex_df_raw[i,])) |
-       any(grepl("^b$", pokedex_df_raw[i,]))){
-      curr_name_german <- pokedex_df_raw$name_german[i]
-      pokedex_df_raw[i,] <- curr_pokedex_df_raw %>% slice(1)
-      pokedex_df_raw$name_german[i] <- curr_name_german
-      pokedex_df_raw$name_english[i] <- curr_name_english
-    }
-  }
-}
 
+
+
+load_sheets()
 
 # Define UI for application 
 ui <- fluidPage(
@@ -91,6 +205,7 @@ ui <- fluidPage(
     choiceValues = NULL
   ),
   
+  actionButton("reload", "reload"),
   
   selectInput(inputId = "mon_of_interest", 
               label = "Pokemon", 
@@ -117,6 +232,12 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output, session) {
   # observe(language_column <- input$language)
+  
+  observeEvent(input$reload, {
+    # session$sendCustomMessage(type = 'testmessage',
+    #                           message = 'Thank you for clicking')
+    load_sheets()
+  })
   
   # Make drop-down choice
   observeEvent(input$language, {
@@ -247,43 +368,43 @@ server <- function(input, output, session) {
       for(j in 1:ncol(stages_caught)){
         # stages_caught[i,j] <- gsub("^b$", "x", stages_caught[i,j])
         if (grepl("Galarian", curr_name_english) == TRUE){
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+          stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
                                                    substring(curr_dex, first = 2), "-g.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         } else if (grepl("Alolan", curr_name_english) == TRUE){
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+          stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
                                                    substring(curr_dex, first = 2), "-a.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         } else if (grepl("Mega X", curr_name_english) == TRUE){
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+          stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
                                                    substring(curr_dex, first = 2), "-mx.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         } else if (grepl("Mega Y", curr_name_english) == TRUE){
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+          stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
                                                    substring(curr_dex, first = 2), "-my.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         } else if (grepl("Mega", curr_name_english) == TRUE){
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+          stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
                                                    substring(curr_dex, first = 2), "-m.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         }  else if (grepl("Primal", curr_name_english) == TRUE){
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+          stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
                                                    substring(curr_dex, first = 2), "-m.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         } else if (grepl("Pom-Pom", curr_name_english) == TRUE){
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+          stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
                                                    substring(curr_dex, first = 2), "-p.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         } else if (grepl("P'au", curr_name_english) == TRUE){
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+          stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
                                                    substring(curr_dex, first = 2), "-pau.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         } else if (grepl("Sensu", curr_name_english) == TRUE){
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+          stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
                                                    substring(curr_dex, first = 2), "-s.png",  " height=\"60\"></img>"), 
                                      stages_caught[i,j])
         } else {
-          stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/',
+          stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/',
                                                    substring(curr_dex, first = 2), ".png",  " height=\"60\"></img>"),
                                      stages_caught[i,j])
         }
@@ -291,7 +412,7 @@ server <- function(input, output, session) {
     }
     
     
-    # stages_caught[i,j] <- gsub("^x$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
+    # stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
     #                                          substring(curr_dex, first = 2), ".png \"",  "height=\"20\"></img>"), 
     #                            stages_caught[i,j])
     
