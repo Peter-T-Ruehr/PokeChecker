@@ -7,6 +7,10 @@ library(data.table)
 library(tidyr)
 library(dplyr)
 
+grepl_mult <- function(string, vector){
+  any(sapply(vector, function(x) grepl(x, string)))
+}
+
 # translations
 # translations_df_wide <- read_sheet(pokedex_df_raw,sheet = "translations")
 # translations_df_wide <- read.csv(file = "PokeChecker/data/translations_df_wide.csv")
@@ -74,7 +78,18 @@ load_sheets <- function(){
       k=2
       for(k in 2:nrow(dex_caught)){
         
-        if(grepl("Mega", dex_caught$name_english[k]) == FALSE){
+        if(grepl_mult(dex_caught$name_english[k], special_forms)
+          # grepl("Mega", dex_caught$name_english[k]) == FALSE &
+          #  grepl("Baile", dex_caught$name_english[k]) == FALSE &
+          #  grepl("Pa'u", dex_caught$name_english[k]) == FALSE &
+          #  grepl("Pom-Pom", dex_caught$name_english[k]) == FALSE &
+          #  grepl("Sensu", dex_caught$name_english[k]) == FALSE &
+          #  grepl("Male", dex_caught$name_english[k]) == FALSE &
+          #  grepl("Female", dex_caught$name_english[k]) == FALSE &
+          #  grepl("Midday", dex_caught$name_english[k]) == FALSE &
+          #  grepl("Midnight", dex_caught$name_english[k]) == FALSE &
+          #  grepl("Dusk", dex_caught$name_english[k]) == FALSE
+          ){
           # check if the current form as any checked mark
           if(any(grepl("^1$", dex_caught[k,]))){
             curr_name_english_spec <- dex_caught$name_english[k]
