@@ -14,9 +14,7 @@ grepl_mult <- function(string, vector){
 # translations
 # translations_df_wide <- read_sheet(pokedex_df_raw,sheet = "translations")
 # translations_df_wide <- read.csv(file = "PokeChecker/data/translations_df_wide.csv")
-translations_df_wide <- read.csv(file = "data/translations_df_wide.csv")
-# get rid of #
-translations_df_wide <- translations_df_wide %>% 
+translations_df_wide <- read.csv(file = "data/translations_df_wide.csv") %>% 
   mutate(dex = gsub("#", "", dex))
 
 # evolution chains
@@ -32,7 +30,7 @@ load_sheets <- function(){
   pokedex_df_raw <<- "https://docs.google.com/spreadsheets/d/1WZWY-zCCki9jD26-v7QQ1CCX85NmiYclPLukeIPHJV4/"
   
   # pokedex
-  pokedex_df_raw <<- read_sheet(pokedex_df_raw,sheet = "pokedex")
+  pokedex_df_raw <<- read_sheet(pokedex_df_raw, sheet = "pokedex")
   # pokedex_df_raw <- read.csv(file = "data/pokedex.csv", colClasses = "character")
   # pokedex_df_raw <- read.csv(file = "PokeChecker/data/pokedex.csv", colClasses = "character")
   
@@ -114,6 +112,8 @@ load_sheets <- function(){
   }
 }
 
+pokedex_df_raw <- pokedex_df_raw %>% 
+  replace(.=="NULL", NA)
 
 colnames(translations_df_wide) <- gsub("name_", "", colnames(translations_df_wide))
 
@@ -361,6 +361,9 @@ server <- function(input, output, session) {
     # stages_caught[i,j] <- gsub("^1$", paste0("<img src=", 'https://www.serebii.net/pokemon/art/', 
     #                                          substring(curr_dex, first = 2), ".png \"",  "height=\"20\"></img>"), 
     #                            stages_caught[i,j])
+    
+    stages_caught <- stages_caught %>% 
+      replace(.=="NULL", NA)
     
     # https://www.serebii.net/pokemon/art/144.png
     DT::datatable(stages_caught,
