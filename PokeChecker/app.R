@@ -112,6 +112,10 @@ load_sheets <- function(){
   }
 }
 
+special_forms <- c("Galarian", "Alolan", "Hisuian", "Paldean")
+
+load_sheets()
+
 pokedex_df_raw <- pokedex_df_raw %>% 
   replace(.=="NULL", NA)
 
@@ -123,11 +127,9 @@ translations_df <- as_tibble(melt(setDT(translations_df_wide),
                                   value.name = "name"))
 
 
-special_forms <- c("Galarian", "Alolan", "Hisuian", "Paldean")
 
 
 
-load_sheets()
 
 # Define UI for application 
 ui <- fluidPage(
