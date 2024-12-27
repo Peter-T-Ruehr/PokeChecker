@@ -36,7 +36,7 @@ load_sheets <- function(){
   
   
   # get column names to mirror and their numbers
-  cols_to_mirror <- c("male_in_dex","female_in_dex","stars3_in_dex","shadow_in_dex","purified_in_dex")
+  cols_to_mirror <- c("male_in_dex","female_in_dex","stars3_in_dex","shadow_in_dex","purified_in_dex","lucky_in_dex","perfect_in_dex","shiny_in_dex")
   cols_to_mirror_nos <- which(colnames(pokedex_df_raw) %in% cols_to_mirror)
   
   # replace all b with x
@@ -77,17 +77,17 @@ load_sheets <- function(){
       for(k in 2:nrow(dex_caught)){
         
         if(grepl_mult(dex_caught$name_english[k], special_forms)
-          # grepl("Mega", dex_caught$name_english[k]) == FALSE &
-          #  grepl("Baile", dex_caught$name_english[k]) == FALSE &
-          #  grepl("Pa'u", dex_caught$name_english[k]) == FALSE &
-          #  grepl("Pom-Pom", dex_caught$name_english[k]) == FALSE &
-          #  grepl("Sensu", dex_caught$name_english[k]) == FALSE &
-          #  grepl("Male", dex_caught$name_english[k]) == FALSE &
-          #  grepl("Female", dex_caught$name_english[k]) == FALSE &
-          #  grepl("Midday", dex_caught$name_english[k]) == FALSE &
-          #  grepl("Midnight", dex_caught$name_english[k]) == FALSE &
-          #  grepl("Dusk", dex_caught$name_english[k]) == FALSE
-          ){
+           # grepl("Mega", dex_caught$name_english[k]) == FALSE &
+           #  grepl("Baile", dex_caught$name_english[k]) == FALSE &
+           #  grepl("Pa'u", dex_caught$name_english[k]) == FALSE &
+           #  grepl("Pom-Pom", dex_caught$name_english[k]) == FALSE &
+           #  grepl("Sensu", dex_caught$name_english[k]) == FALSE &
+           #  grepl("Male", dex_caught$name_english[k]) == FALSE &
+           #  grepl("Female", dex_caught$name_english[k]) == FALSE &
+           #  grepl("Midday", dex_caught$name_english[k]) == FALSE &
+           #  grepl("Midnight", dex_caught$name_english[k]) == FALSE &
+           #  grepl("Dusk", dex_caught$name_english[k]) == FALSE
+        ){
           # check if the current form as any checked mark
           if(any(grepl("^1$", dex_caught[k,]))){
             curr_name_english_spec <- dex_caught$name_english[k]

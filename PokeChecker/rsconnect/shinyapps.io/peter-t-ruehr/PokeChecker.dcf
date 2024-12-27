@@ -5,8 +5,9 @@ account: peter-t-ruehr
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 10846983
-bundleId: 8088071
+bundleId: 9170319
 url: https://peter-t-ruehr.shinyapps.io/PokeChecker/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: data/pokedex.csv
